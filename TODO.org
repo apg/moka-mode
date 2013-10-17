@@ -1,0 +1,42 @@
+#+Title: TODOs for moka-mode
+
+* TODO General
+  - [ ] Proper indentation of annotated methods
+  - [ ] Import ordering and generation from tags
+  - [ ] Import sorting
+    - Can we remove unused imports easily?
+
+* TODO Tags
+  - [ ] Project "bundles" 
+    - Each pom file should have it's own set of TAGS files.
+      For instance. I have a project at ~/repos/foobar/pom.xml, and a project at ~/repos/quux/pom.xml,
+      both of which rely on JUnit and something else. We therefore get a setup like this:
+
+      - moka-global-tag-registry:
+        (("~/repos/foobar/" . '("JUNIT-TAGS" "FOOBAR-FOLDER-TAGS"))
+         ("~/repos/quux/" . '("JUNIT-TAGS" "QUUX-FOLDER-TAGS" "MOCKITO-TAGS")))
+
+      - Then, in a buffer local variable, we store the file's project, and tag lookups go through to the
+        specific TAGS files.
+  - [ ] Tag file directories should be discovered, not declared.
+  - [ ] Tie jtags stuff into autocomplete-mode (I think it could be pretty powerful)
+  - [ ] Make tags from sources-jar files
+
+* TODO Testing
+  - [ ] Run test at point
+  - [ ] Run all tests in file
+  - [ ] Jump to location in files referenced
+    - Ultimately it's just defining a regexp and adding it to a list, but how do we deal with different output?
+    - Does maven standardize this because it has a test runner?
+
+* TODO Exploratory
+  - [ ] Integrate a shell / repl of some sort to cut down on boilerplate 
+    - I don't think Clojure is *right* for this task. Need very good dynamic class loading / replacement so as to not need to restart so often.
+      - beanshell
+      - Groovy
+      - Sisc
+
+* TODO Maven
+  - [ ] Execute common tasks simply and easily
+  - [ ] Discover goals
+  - [ ] Discover classpath
