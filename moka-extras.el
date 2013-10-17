@@ -366,19 +366,19 @@ that belong to the same group are sorted alphabetically within the group."
 ;; ----------------------------------------------------------------------------
 
 ;; Add moka-extras menu items to the moka mode menu
-(setq moka-menu-list (append moka-menu-list
+(setq moka-tags-menu-list (append moka-tags-menu-list
                               (list "--"
                                     ["Add import" moka-extras-add-import t]
                                     ["Organize imports" moka-extras-organize-imports t])))
 
 ;; Redefine the moka mode menu
-(easy-menu-define moka-menu moka-mode-map
+(easy-menu-define moka-tags-menu moka-tags-mode-map
   "Provides menu items for accessing moka functionality."
-  moka-menu-list)
+  moka-tags-menu-list)
 
 ;; Add moka-extras key bindings to the moka mode keymap
-(define-key moka-mode-map [(control c) ?\+] 'moka-extras-add-import)
-(define-key moka-mode-map [(control c) ?\=] 'moka-extras-organize-imports)
+(define-key moka-tags-mode-map [(control c) ?\+] 'moka-extras-add-import)
+(define-key moka-tags-mode-map [(control c) ?\=] 'moka-extras-organize-imports)
 
 ;;;###autoload (add-hook 'java-mode-hook 'moka-extras)
 
