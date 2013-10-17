@@ -63,7 +63,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'moka)
+(require 'moka-tags)
 
 ;; ----------------------------------------------------------------------------
 ;; Customization:
