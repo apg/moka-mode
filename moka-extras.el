@@ -129,7 +129,7 @@ in the list."
   (interactive)
 
   ;; Find definition of identifier
-  (let ((definition (moka-find-tag)))
+  (let ((definition (moka-extras-find-tag)))
 
     (if (null definition)
         (message "Tag not found!")
