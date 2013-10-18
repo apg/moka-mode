@@ -1,13 +1,18 @@
 #+Title: TODOs for moka-mode
 
 * TODO General
-  - [ ] Proper indentation of annotated methods
-  - [ ] Import ordering and generation from tags
-  - [ ] Import sorting
-    - Can we remove unused imports easily?
+  - [ ] *HIGH* Proper indentation of annotated methods
+  - [ ] *MED* Import generation from tags 
+    - I think JTags does this if tags are setup properly and fully
+  - [X] Import sorting - via JTags
+    - *LOW* Can we remove unused imports easily?
+  - [X] Cleanup of the moka source
+    - Could still use more, but sure.
+  - [ ] Indenter (might be external. Ideally supports XML config from eclipse, and the options defined there)
+    - could perhaps use eclipse itself.
 
 * TODO Tags
-  - [ ] Project "bundles" 
+  - [ ] *HIGH* Project "bundles" 
     - Each pom file should have it's own set of TAGS files.
       For instance. I have a project at ~/repos/foobar/pom.xml, and a project at ~/repos/quux/pom.xml,
       both of which rely on JUnit and something else. We therefore get a setup like this:
@@ -18,25 +23,29 @@
 
       - Then, in a buffer local variable, we store the file's project, and tag lookups go through to the
         specific TAGS files.
-  - [ ] Tag file directories should be discovered, not declared.
-  - [ ] Tie jtags stuff into autocomplete-mode (I think it could be pretty powerful)
-  - [ ] Make tags from sources-jar files
+  - [ ] *HIGH* Tag file directories should be discovered, not declared.
+    - This is currently being done to populate tag-table-list, which *should* become a buffer local
+  - [ ] *MED* Tie jtags stuff into autocomplete-mode (I think it could be pretty powerful)
+  - [ ] *HIGH* Make tags from sources-jar files
 
 * TODO Testing
-  - [ ] Run test at point
-  - [ ] Run all tests in file
-  - [ ] Jump to location in files referenced
+  - [ ] *MED* Run test at point (via mvn)
+  - [ ] *MED* Run all tests in file (via mvn)
+    - requires package / class discovery. 
+  - [ ] *HIGH* Jump to location in files referenced (should be pretty easy to)
     - Ultimately it's just defining a regexp and adding it to a list, but how do we deal with different output?
     - Does maven standardize this because it has a test runner?
 
 * TODO Exploratory
   - [ ] Integrate a shell / repl of some sort to cut down on boilerplate 
     - I don't think Clojure is *right* for this task. Need very good dynamic class loading / replacement so as to not need to restart so often.
-      - beanshell
+      - beanshell (https://github.com/nicedevs/BeanShell2) 
       - Groovy
-      - Sisc
+      - Sisc ? 
+      - kawa ?
 
 * TODO Maven
   - [ ] Execute common tasks simply and easily
+    - Have to switch to directory, but otherwise, should be done -- not documented.
   - [ ] Discover goals
-  - [ ] Discover classpath
+  - [ ] *INPROG* Discover classpath, relates to tag stuff

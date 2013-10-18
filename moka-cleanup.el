@@ -1,4 +1,4 @@
-;;; moka-extras.el --- moka related functionality for Java development
+;;; moke-cleanup.el --- moka related functionality for Java development
 
 ;; Copyright (C) 2007-2011 Johan Dykstrom
 ;; Copyright (C) 2013 Andrew Gwozdziewycz
@@ -23,53 +23,44 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; This file is NOT part of GNU emacs. It is however part of moka-mode
+
 ;;; Commentary:
 
-;; This package provides functionality to support Java development. The
-;; functions in the package depend on `moka-mode', but are not part of
-;; the core moka package.
+;; The following interactive functions are defined within this file:
 ;;
-;; The following interactive functions are defined within the package:
-;;
-;; - moka-extras-add-import:       add an import statement for the identifier
+;; - moke-cleanup-add-import:       add an import statement for the identifier
 ;;                                  around or before point
-;; - moka-extras-organize-imports: order and format the import statements in
+;; - moke-cleanup-organize-imports: order and format the import statements in
 ;;                                  the current source code file
-
-;; Installation:
-
-;; Place "moka.el" and "moka-extras.el" in your `load-path' and place the
-;; following lines of code in your init file:
-;;
-;; (autoload 'moka-extras "moka-extras" "Load moka-extras.")
-;; (add-hook 'java-mode-hook 'moka-extras)
 
 ;; Configuration:
 
 ;; To automatically organize the import statements after adding a new one, set
-;; `moka-extras-organize-after-add-flag' to non-nil. To change how the import
-;; statements are sorted, edit `moka-extras-import-order-list'. Both variables
+;; `moke-cleanup-organize-after-add-flag' to non-nil. To change how the import
+;; statements are sorted, edit `moke-cleanup-import-order-list'. Both variables
 ;; can be set using customize. Type `M-x customize-group' and enter group name
 ;; "moka".
 ;;
-;; To make moka-extras work as expected, you must also configure package
+;; To make moke-cleanup work as expected, you must also configure package
 ;; moka, see the configuration section in file "moka.el".
 ;;
-;; The moka-extras package defines two key bindings in the `moka-mode-map':
+;; The moke-cleanup package defines two key bindings in the `moka-mode-map':
 ;;
-;; - C-c + is bound to `moka-extras-add-import'
-;; - C-c = is bound to `moka-extras-organize-imports'
+
+;;; TODO: These likely change
+;; - C-c + is bound to `moke-cleanup-add-import'
+;; - C-c = is bound to `moke-cleanup-organize-imports'
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'moka-tags)
 
 ;; ----------------------------------------------------------------------------
 ;; Customization:
 ;; ----------------------------------------------------------------------------
 
-(defcustom moka-extras-import-order-list
+(defcustom moka-clean-import-order-list
   '("^java\\."
     "^javax\\."
     "-"
@@ -88,7 +79,7 @@ hyphen in the list."
   :type '(repeat regexp)
   :group 'moka)
 
-(defcustom moka-extras-organize-after-add-flag 't
+(defcustom moka-clean-organize-after-add-flag 't
   "*Non-nil means organize imports automatically after adding a new import.
 A nil value means that new imports will be added last in the list."
   :type 'boolean
@@ -98,29 +89,19 @@ A nil value means that new imports will be added last in the list."
 ;; Generic functions:
 ;; ----------------------------------------------------------------------------
 
-(defun moka-extras-match-index (list s)
-  "Return index of first regexp in LIST that matches string S.
-Return nil if no regexp in LIST matches S."
-  (let ((index 0))
-    (block while-list
-      (while list
-        (if (string-match (car list) s)
-            (return-from while-list index))
-        (setq list (cdr list))
-        (setq index (1+ index))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Private variables:
 ;; ----------------------------------------------------------------------------
 
-(defconst moka-extras-version "0.3.0"
-  "The current version of `moka-extras'.")
+(defconst moke-cleanup-version "0.3.0"
+  "The current version of `moke-cleanup'.")
 
 ;; ----------------------------------------------------------------------------
 ;; Main functions:
 ;; ----------------------------------------------------------------------------
 
-(defun moka-extras-add-import ()
+(defun moke-cleanup-add-import ()
   "Add an import statement for the identifier around or before point.
 
 Find the definition of the identifier in the tags table files, check that it
@@ -129,7 +110,7 @@ in the list."
   (interactive)
 
   ;; Find definition of identifier
-  (let ((definition (moka-extras-find-tag)))
+  (let ((definition (moke-cleanup-find-tag)))
 
     (if (null definition)
         (message "Tag not found!")
@@ -142,35 +123,35 @@ in the list."
                      (moka-definition-name definition)))
 
           ;; Insert import statement
-          (moka-extras-add-import-statement definition)
+          (moke-cleanup-add-import-statement definition)
         (message "Tag not a type!")))))
 
-(defun moka-extras-organize-imports ()
+(defun moke-cleanup-organize-imports ()
   "Order and format the import statements in the current source code file.
 
 Sort the import statements in the order they are listed in
-`moka-extras-import-order-list', insert blank lines between the
-statements as specified in `moka-extras-import-order-list'."
+`moke-cleanup-import-order-list', insert blank lines between the
+statements as specified in `moke-cleanup-import-order-list'."
   (interactive)
 
   ;; Find the region that contains all import statements
-  (let ((import-region (moka-extras-find-import-region)))
+  (let ((import-region (moke-cleanup-find-import-region)))
 
     (when import-region
 
       ;; Remove all blank lines, and compute a new region
-      (moka-extras-clean-ws-region (car import-region) (cdr import-region))
-      (setq import-region (moka-extras-find-import-region))
+      (moke-cleanup-clean-ws-region (car import-region) (cdr import-region))
+      (setq import-region (moke-cleanup-find-import-region))
 
-      ;; Sort all lines in the region, according to moka-extras-import-order-list
-      (moka-extras-sort-import-region (car import-region) (cdr import-region))
+      ;; Sort all lines in the region, according to moke-cleanup-import-order-list
+      (moke-cleanup-sort-import-region (car import-region) (cdr import-region))
 
-      ;; Insert new blank lines, according to moka-extras-import-order-list
-      (moka-extras-insert-ws-region (car import-region) (cdr import-region)))))
+      ;; Insert new blank lines, according to moke-cleanup-import-order-list
+      (moke-cleanup-insert-ws-region (car import-region) (cdr import-region)))))
 
 ;; ----------------------------------------------------------------------------
 
-(defun moka-extras-add-import-statement (definition)
+(defun moke-cleanup-add-import-statement (definition)
   "Add an import statement for the identifier in DEFINITION.
 Check that the class or interface is not already imported, move to after
 the last existing import statement, and insert a new import statement."
@@ -191,7 +172,7 @@ the last existing import statement, and insert a new import statement."
           (message "Tag already imported!")
 
         ;; Find last import
-        (moka-extras-find-last-import)
+        (moke-cleanup-find-last-import)
 
         ;; If there are no import statements, but a package statement, insert
         ;; an extra newline to make things look better
@@ -209,12 +190,12 @@ the last existing import statement, and insert a new import statement."
             (insert "\n"))
 
         ;; Organize import statements, including the new one
-        (if moka-extras-organize-after-add-flag
-            (moka-extras-organize-imports))
+        (if moke-cleanup-organize-after-add-flag
+            (moke-cleanup-organize-imports))
 
         (message "Added import %s" class-import)))))
 
-(defun moka-extras-find-last-import ()
+(defun moke-cleanup-find-last-import ()
   "Move to the line after the last package or import statement.
 Find the last package or import statement, and place the point
 at the beginning of the next line."
@@ -228,7 +209,7 @@ at the beginning of the next line."
       (goto-char (match-end 0)))
     (goto-char last-import-pos)))
 
-(defun moka-extras-find-import-region ()
+(defun moke-cleanup-find-import-region ()
   "Find and return the region containing all import statements.
 The value returned is a cons of the region's start and end.
 If there are no import statements in this file, return nil."
@@ -251,7 +232,7 @@ If there are no import statements in this file, return nil."
       (if start
           (cons start end)))))
 
-(defun moka-extras-clean-ws-region (start end)
+(defun moke-cleanup-clean-ws-region (start end)
   "Clean unwanted whitespace in the region between START and END.
 Remove blank lines and any whitespace at BOL for all lines in
 the given region."
@@ -269,9 +250,9 @@ the given region."
       (when (looking-at "[ \t]+")
         (delete-region (match-beginning 0) (match-end 0))))))
 
-(defun moka-extras-insert-ws-region (start end)
+(defun moke-cleanup-insert-ws-region (start end)
   "Insert blank lines between import statements belonging to different groups.
-The list `moka-extras-import-order-list' defines where to insert the blank
+The list `moke-cleanup-import-order-list' defines where to insert the blank
 lines. Only import statements within the region defined by START and END are
 considered."
   (save-excursion
@@ -281,24 +262,24 @@ considered."
     (while (> (point) start)
 
       ;; Get import statements from the previous line and from this line
-      (let ((import1 (save-excursion (forward-line -1) (moka-extras-sort-import-startkeyfun)))
-            (import2 (save-excursion (moka-extras-sort-import-startkeyfun))))
+      (let ((import1 (save-excursion (forward-line -1) (moke-cleanup-sort-import-startkeyfun)))
+            (import2 (save-excursion (moke-cleanup-sort-import-startkeyfun))))
 
         ;; Get indices for the imports
-        (let ((index1 (moka-extras-match-index moka-extras-import-order-list import1))
-              (index2 (moka-extras-match-index moka-extras-import-order-list import2)))
+        (let ((index1 (moka-match-index moke-cleanup-import-order-list import1))
+              (index2 (moka-match-index moke-cleanup-import-order-list import2)))
 
           ;; If import was not in list, set index to length of list to make it
           ;; easier to compare
           (if (null index1)
-              (setq index1 (length moka-extras-import-order-list)))
+              (setq index1 (length moke-cleanup-import-order-list)))
           (if (null index2)
-              (setq index2 (length moka-extras-import-order-list)))
+              (setq index2 (length moke-cleanup-import-order-list)))
 
           ;; Get index of first hyphen after first import
-          (let ((index-hyphen (moka-extras-match-index (nthcdr index1 moka-extras-import-order-list) "-")))
+          (let ((index-hyphen (moka-match-index (nthcdr index1 moke-cleanup-import-order-list) "-")))
             (if (null index-hyphen)
-                (setq index-hyphen (length moka-extras-import-order-list)))
+                (setq index-hyphen (length moke-cleanup-import-order-list)))
 
             ;; If the imports are not in the same group in the list,
             ;; and there is a hyphen between them in the list,
@@ -310,50 +291,50 @@ considered."
 
       (forward-line -1))))
 
-(defun moka-extras-sort-import-region (start end)
-  "Sort import statements according to `moka-extras-import-order-list'.
+(defun moke-cleanup-sort-import-region (start end)
+  "Sort import statements according to `moke-cleanup-import-order-list'.
 Only import statements within the region defined by START and END are
 considered."
   (save-excursion
     (save-restriction
-;;       (moka-message "Import order list=%S" moka-extras-import-order-list)
+;;       (moka-message "Import order list=%S" moke-cleanup-import-order-list)
       (narrow-to-region start end)
       (goto-char (point-min))
       (if (and (not (featurep 'xemacs)) (< emacs-major-version 22))
           (sort-subr nil
                      'forward-line
                      'end-of-line
-                     'moka-extras-sort-import-startkeyfun
+                     'moke-cleanup-sort-import-startkeyfun
                      nil)
         (sort-subr nil
                    'forward-line
                    'end-of-line
-                   'moka-extras-sort-import-startkeyfun
+                   'moke-cleanup-sort-import-startkeyfun
                    nil
-                   'moka-extras-sort-import-predicate)))))
+                   'moke-cleanup-sort-import-predicate)))))
 
-(defun moka-extras-sort-import-startkeyfun ()
+(defun moke-cleanup-sort-import-startkeyfun ()
   "Return the import statement sort key, i.e. the package name.
 Return a dummy string if this line is not an import statement."
   (if (re-search-forward "import[ \t]+\\([^\n;]*;\\)" (point-at-eol) t)
       (buffer-substring-no-properties (match-beginning 1) (match-end 1))
     "zzzzz"))
 
-(defun moka-extras-sort-import-predicate (import1 import2)
+(defun moke-cleanup-sort-import-predicate (import1 import2)
   "Return t if IMPORT1 should be sorted before IMPORT2.
 Import statements are sorted according to which group they belong to. The
-groups are defined in `moka-extras-import-order-list'. Import statements
+groups are defined in `moke-cleanup-import-order-list'. Import statements
 that belong to the same group are sorted alphabetically within the group."
 ;;   (moka-message "Comparing imports `%s' and `%s'" import1 import2)
-  (let ((index1 (moka-extras-match-index moka-extras-import-order-list import1))
-        (index2 (moka-extras-match-index moka-extras-import-order-list import2)))
+  (let ((index1 (moka-match-index moke-cleanup-import-order-list import1))
+        (index2 (moka-match-index moke-cleanup-import-order-list import2)))
 
     ;; If import was not in list, set index to length of list to make it easier
     ;; to compare
     (if (null index1)
-        (setq index1 (length moka-extras-import-order-list)))
+        (setq index1 (length moke-cleanup-import-order-list)))
     (if (null index2)
-        (setq index2 (length moka-extras-import-order-list)))
+        (setq index2 (length moke-cleanup-import-order-list)))
 
     ;; If the indices are equal, compare the imports alphabetically, since they
     ;; are both in the same group
@@ -361,33 +342,6 @@ that belong to the same group are sorted alphabetically within the group."
         (string< import1 import2)
       (< index1 index2))))
 
-;; ----------------------------------------------------------------------------
-;; Key bindings:
-;; ----------------------------------------------------------------------------
+(provide 'moke-cleanup)
 
-;; Add moka-extras menu items to the moka mode menu
-(setq moka-tags-menu-list (append moka-tags-menu-list
-                              (list "--"
-                                    ["Add import" moka-extras-add-import t]
-                                    ["Organize imports" moka-extras-organize-imports t])))
-
-;; Redefine the moka mode menu
-(easy-menu-define moka-tags-menu moka-tags-mode-map
-  "Provides menu items for accessing moka functionality."
-  moka-tags-menu-list)
-
-;; Add moka-extras key bindings to the moka mode keymap
-(define-key moka-tags-mode-map [(control c) ?\+] 'moka-extras-add-import)
-(define-key moka-tags-mode-map [(control c) ?\=] 'moka-extras-organize-imports)
-
-;;;###autoload (add-hook 'java-mode-hook 'moka-extras)
-
-;;;###autoload
-(defun moka-extras ()
-  "Load `moka-extras'.")
-
-;; ----------------------------------------------------------------------------
-
-(provide 'moka-extras)
-
-;;; moka-extras.el ends here
+;;; moke-cleanup.el ends here

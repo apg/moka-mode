@@ -23,9 +23,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; This file is NOT part of GNU emacs. It is however part of moka-mode
+
 ;;; Commentary:
 
-;; The main purpose of `moka-tags-mode' is to provide an improved tags lookup
+;; The main purpose of `moka-tags' is to provide an improved tags lookup
 ;; function for Java source code, compared to the ordinary etags package.
 ;; While etags knows only the name of the identifier, moka-tags also knows the
 ;; context in which the identifier is used. This allows moka-tags to find the
@@ -55,11 +57,6 @@
 
 ;; Installation:
 
-;; Place "moka-tags.el" in your `load-path' and place the following lines in your
-;; init file:
-;;
-;; (autoload 'moka-tags-mode "moka-tags" "Toggle moka-tags mode." t)
-;; (add-hook 'java-mode-hook 'moka-tags-mode)
 
 ;; Configuration:
 
@@ -99,7 +96,7 @@
 ;; files.
 ;;
 ;; To display Javadoc for third party libraries, you need to customize the
-;; `moka-tags-javadoc-root-alist' and add Javadoc root URLs for these libraries.
+;; `moka-javadoc-root-alist' and add Javadoc root URLs for these libraries.
 ;; Package moka-tags now supports both http URLs and file URLs.
 ;;
 ;; If you want to use the moka-tags submenu, set `moka-tags-display-menu-flag' to
@@ -129,94 +126,65 @@
 ;; Customization:
 ;; ----------------------------------------------------------------------------
 
-(defgroup moka-tags nil
-  "Enhanced tags functionality for Java development."
-  :link '(emacs-library-link :tag "Source File" "moka-tags.el")
-  :group 'tools)
-
 ;; Faces:
 
 (defface moka-tags-member-face
   '((t (:bold t)))
   "*Face used to display normal class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-member-face
   (make-face 'moka-tags-member-face))
 
 (defface moka-tags-final-member-face
   '((t (:foreground "seagreen" :bold t)))
   "*Face used to display final class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-final-member-face
   (make-face 'moka-tags-final-member-face))
 
 (defface moka-tags-static-member-face
   '((t (:italic t :bold t)))
   "*Face used to display static class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-static-member-face
   (make-face 'moka-tags-static-member-face))
 
 (defface moka-tags-final-static-member-face
   '((t (:foreground "seagreen" :italic t :bold t)))
   "*Face used to display final static class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-final-static-member-face
   (make-face 'moka-tags-final-static-member-face))
 
 (defface moka-tags-inherited-member-face
   '((t nil))
   "*Face used to display inherited class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-inherited-member-face
   (make-face 'moka-tags-inherited-member-face))
 
 (defface moka-tags-inherited-final-member-face
   '((t (:foreground "seagreen")))
   "*Face used to display inherited final class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-inherited-final-member-face
   (make-face 'moka-tags-inherited-final-member-face))
 
 (defface moka-tags-inherited-static-member-face
   '((t (:italic t)))
   "*Face used to display inherited static class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-inherited-static-member-face
   (make-face 'moka-tags-inherited-static-member-face))
 
 (defface moka-tags-inherited-final-static-member-face
   '((t (:foreground "seagreen" :italic t)))
   "*Face used to display inherited final static class members."
-  :group 'moka-tags)
+  :group 'moka)
 (defvar moka-tags-inherited-final-static-member-face
   (make-face 'moka-tags-inherited-final-static-member-face))
 
 ;; Other stuff:
-
-(defcustom moka-tags-javadoc-root-list nil
-  "This variable has been deprecated and will be removed."
-  :type '(repeat file)
-  :group 'moka-tags)
-
-(defcustom moka-tags-javadoc-root-alist
-  '(("^java\\." . "http://download.oracle.com/javase/6/docs/api")
-    ("^javax\\." . "http://download.oracle.com/javase/6/docs/api")
-    ("^org\\.w3c\\.dom" . "http://download.oracle.com/javase/6/docs/api")
-    ("^org\\.xml\\.sax" . "http://download.oracle.com/javase/6/docs/api"))
-  "*Alist of package patterns vs corresponding Javadoc root URLs.
-Each element looks like (REGEXP . URL) where REGEXP is a regexp
-that matches a group of imports, and URL is the Javadoc root URL
-for that group of imports. The Javadoc root URL is where the
-\"index.html\" file resides."
-  :type '(alist :key-type regexp :value-type string)
-  :group 'moka-tags)
-
-(defcustom moka-tags-browse-url-function 'browse-url
-  "*A function used by `moka-tags-browse-url' to display URLs.
-This function will be called with one argument: the URL to display."
-  :group 'moka-tags
-  :type 'function)
 
 (defcustom moka-tags-etags-command
   (if (eq system-type 'windows-nt)
@@ -227,97 +195,21 @@ This variable allows you to customize how to update tags table files, e.g.
 specify a path to the etags program. The sequence %f will be replaced by
 the actual tags table file name when running the command."
   :type 'string
-  :group 'moka-tags)
+  :group 'moka)
 
-(defcustom moka-tags-display-menu-flag 't
-  "*Non-nil means that the moka-tags submenu will be added to the menu bar.
-Set this variable to nil if you do not want to use the moka-tags submenu. If
-non-nil, the submenu will be displayed when moka-tags mode is active."
-  :type 'boolean
-  :group 'moka-tags)
 
 (defcustom moka-tags-use-buffer-tag-table-list-flag nil
   "*Non-nil means use built-in function `buffer-tag-table-list' if available.
 Set this variable to nil if you want to use `moka-tags-buffer-tag-table-list' to
 parse `tag-table-alist' instead of the built-in function."
   :type 'boolean
-  :group 'moka-tags)
+  :group 'moka)
 
-(defcustom moka-tags-trace-flag nil
-  "*Non-nil means that tracing is ON. A nil value means that tracing is OFF."
-  :type 'boolean
-  :group 'moka-tags)
-
-;; ----------------------------------------------------------------------------
-;; Generic functions:
-;; ----------------------------------------------------------------------------
-
-(defun moka-tags-uniqify-list (list)
-  "Return a copy of LIST with all duplicates removed.
-The original list is not modified. Example:
-
-\(moka-tags-uniqify-list '\(1 3 1 5 3 1\)\) -> \(1 3 5\)"
-  (let (unique)
-    (while list
-      (unless (member (car list) unique)
-        (setq unique (cons (car list) unique)))
-      (setq list (cdr list)))
-    (nreverse unique)))
-
-(defun moka-tags-filter-list (list predicate)
-  "Return a list containing all elements in LIST that satisfy PREDICATE.
-The original LIST is not modified. PREDICATE should be a function of one
-argument that returns non-nil if the argument should be part of the result
-list. Example:
-
-\(moka-tags-filter-list '\(1 2 3 4 5\) \(lambda \(x\) \(> x 3\)\)\) -> \(4 5\)"
-  (let (result)
-    (while list
-      (if (funcall predicate (car list))
-          (setq result (cons (car list) result)))
-      (setq list (cdr list)))
-    (nreverse result)))
-
-(defsubst moka-tags-rotate-left (src)
-  "Rotate the list SRC one position left, and return the result.
-The original list is not modified."
-  (if src
-      (append (cdr src) (list (car src)))))
-
-(defsubst moka-tags-get-line ()
-  "Return the line number of the current buffer position."
-  (save-excursion
-    (beginning-of-line)
-    (1+ (count-lines 1 (point)))))
-
-(defsubst moka-tags-line-to-point (line)
-  "Convert LINE to a position in the current buffer."
-  (save-excursion
-    (goto-char (point-min))
-    (forward-line (1- line))
-    (point)))
-
-(defun moka-tags-file-name-directory (filename)
-  "Return the directory component in file name FILENAME.
-Unlike the built-in function `file-name-directory', this function also
-normalizes the file name. File name components such as `..' and `~' are
-expanded. Back slashes are replaced with forward slashes. The returned
-string always ends with a slash."
-  (setq filename (file-truename filename))
-  (if (string-match "^[A-Za-z]:" filename)
-      (setq filename (concat (downcase (substring filename 0 1))
-                             (substring filename 1))))
-  (if (not (file-directory-p filename))
-      (setq filename (file-name-directory filename)))
-  (setq filename (file-name-as-directory filename))
-  (setq filename (replace-regexp-in-string "\\\\" "/" filename)))
 
 ;; ----------------------------------------------------------------------------
 ;; Private variables:
 ;; ----------------------------------------------------------------------------
 
-(defconst moka-tags-version "0.97"
-  "The current version of moka-tags mode.")
 
 ;;                              PACKAGE                  TYPE NAME          TYPE ARGS       ARRAY OR SPACE
 (defconst moka-tags-type-regexp "\\([A-Za-z0-9_.]+\\\.\\)*\\([A-Za-z0-9_]+\\)\\(<[^>]+>\\)?\\(\\[\\]\\|[ \t\n]\\)+"
@@ -355,44 +247,6 @@ subexp   description
   "Holds a list of the text to be replaced and possible completions.
 This variable is used to circle completions.")
 
-(defvar moka-tags-buffer-name "*moka-tags*"
-  "The name of the moka-tags temporary buffer.")
-
-;; ----------------------------------------------------------------------------
-;; Utility functions:
-;; ----------------------------------------------------------------------------
-
-(defun moka-tags-message (string &rest args)
-  "Display message STRING at the bottom of the screen if tracing is ON.
-The message also goes into the `*Messages*' buffer.
-
-The first argument is a format control string, and the rest are data
-to be formatted under control of the string. See `format' for details.
-
-See `moka-tags-trace-flag' on how to turn tracing ON and OFF."
-  (when moka-tags-trace-flag
-    (save-excursion
-      (save-match-data
-
-        ;; Get name of calling function
-        (let* ((frame-number 0)
-               (function-list (backtrace-frame frame-number))
-               (function-name nil))
-          (while function-list
-            (if (symbolp (cadr function-list))
-                (setq function-name (symbol-name (cadr function-list)))
-              (setq function-name "<not a symbol>"))
-            (if (and (string-match "^moka-tags-" function-name)
-                     (not (string-match "^moka-tags-message$" function-name)))
-                (setq function-list nil)
-              (setq frame-number (1+ frame-number))
-              (setq function-list (backtrace-frame frame-number))))
-
-          ;; Update argument list
-          (setq args (append (list (concat "%s:\t" string) function-name) args)))
-
-        ;; Print message
-        (apply 'message args)))))
 
 ;; The DEFINITION of an identifier is a struct type with the following elements:
 ;;
@@ -482,13 +336,15 @@ Find the definition of the identifier in the tags table files.
 Find the Javadoc for the identifier using the Javadoc root list,
 and display it in the configured browser.
 
-See also variable `moka-tags-javadoc-root-alist'."
+See also variable `moka-javadoc-root-alist'."
   (interactive)
   (let ((definition (moka-tags-find-tag)))
     (if (null definition)
         (message "Tag not found!")
       (moka-tags-browse-url definition))))
 
+
+;; TODO: completion should be in it's own file
 (defun moka-tags-member-completion ()
   "Look up a partly typed identifier around or before point, and complete it.
 
@@ -514,8 +370,8 @@ will be displayed."
           (setq last-completion (cadr moka-tags-last-possible-completions))
           (setq moka-tags-last-possible-completions
                 (cons (car moka-tags-last-possible-completions)
-                      (moka-tags-rotate-left (cdr moka-tags-last-possible-completions))))))
-    ;; (moka-tags-message "Possible completions=%S" moka-tags-last-possible-completions)
+                      (moka-rotate-left (cdr moka-tags-last-possible-completions))))))
+    ;; (moka-message "Possible completions=%S" moka-tags-last-possible-completions)
 
     ;; If no completion found
     (if (not moka-tags-last-possible-completions)
@@ -580,10 +436,10 @@ in that class or not. Return the list of classes that the point is
 in, with the innermost class first and the outermost class last."
   (if class-list
       (let* ((class (caar class-list))
-             (start (moka-tags-line-to-point (cdar class-list)))
+             (start (moka-line-to-point (cdar class-list)))
              (end (moka-tags-find-end-of-class start))
              (pos (point)))
-        (moka-tags-message "Class `%s' spans [%s - %s], pos=%s" class start end pos)
+        (moka-message "Class `%s' spans [%s - %s], pos=%s" class start end pos)
         (if (and (>= pos start) (<= pos end))
             (cons class (moka-tags-filter-class-list (cdr class-list)))
           (moka-tags-filter-class-list (cdr class-list))))))
@@ -619,8 +475,8 @@ CLASS and its base classes."
     (let ((src (if (null class)
                    (moka-tags-get-surrounding-classes (buffer-file-name))
                  (list class))))
-      (moka-tags-message "Source classes=%S" src)
-      (moka-tags-uniqify-list (moka-tags-get-class-list-iter src)))))
+      (moka-message "Source classes=%S" src)
+      (moka-uniqify-list (moka-tags-get-class-list-iter src)))))
 
 (defun moka-tags-get-class-list-iter (class-list)
   "Return the class hierarchies for all classes in CLASS-LIST as a flat list.
@@ -645,7 +501,7 @@ qualified class names."
                         "\\(\\W*<[^>]+>\\)*"
                         "\\W+extends\\W+"
                         "\\([A-Za-z0-9_.]+\\\.\\)*\\([A-Za-z0-9_]+\\)")))
-    (moka-tags-message "Definition of `%s'=%S" class definition)
+    (moka-message "Definition of `%s'=%S" class definition)
     (if (null definition)
         (list class)
       (set-buffer (find-file-noselect (moka-tags-definition-file definition) t))
@@ -662,7 +518,7 @@ qualified class names."
                                                                                  (match-end 2))
                                                  "*")))
               (setq package-list (moka-tags-find-imports (moka-tags-definition-package definition))))
-            (moka-tags-message "Class `%s' extends class `%s'" class super-class)
+            (moka-message "Class `%s' extends class `%s'" class super-class)
 
             ;; Find out which class the super class extends
             (cons class (moka-tags-do-get-class-list super-class package-list)))
@@ -685,12 +541,12 @@ DEFINITION of the identifier is returned."
   (let* ((identifiers (moka-tags-parse-java-line))
          (classes (moka-tags-get-class-list))
          (definition (moka-tags-local-tags-lookup identifiers classes)))
-    (moka-tags-message "Local definition=%s" definition)
+    (moka-message "Local definition=%s" definition)
 
     ;; If no local definition, find class member definition
     (when (null definition)
       (setq definition (moka-tags-recursive-tags-lookup identifiers classes))
-      (moka-tags-message "Recursive definition=%s" definition))
+      (moka-message "Recursive definition=%s" definition))
 
     definition))
 
@@ -704,7 +560,7 @@ its DEFINITION is returned.
 This function will not look up constructors, as it does not know if an
 identifier refers to a constructor or its class. The DEFINITION of the
 class will be returned instead."
-  (moka-tags-message "Identifiers=%S, classes=%S" identifiers classes)
+  (moka-message "Identifiers=%S, classes=%S" identifiers classes)
   (when identifiers
     (let ((definition nil)
           (looking-for-class (null classes)))
@@ -730,7 +586,7 @@ class will be returned instead."
         ;; in a later call to this function.
         (unless (equal (car classes) (car identifiers))
           (setq definition (moka-tags-lookup-identifier (car classes) (car identifiers)))))
-      (moka-tags-message "Definition=%S" definition)
+      (moka-message "Definition=%S" definition)
 
       ;; If we did not find the identifier, look for it in next class (if we
       ;; were not looking for a class)
@@ -756,14 +612,14 @@ IDENTIFIERS is a list of identifiers, starting with the first identifier in the
 expression, and ending with the identifier to look up. CLASSES is a list of
 classes, but only the first one is used to search for the identifier. If the
 identifier is found, its DEFINITION is returned."
-  (moka-tags-message "Identifiers=%S, classes=%S" identifiers classes)
+  (moka-message "Identifiers=%S, classes=%S" identifiers classes)
   (if (or (null identifiers) (null classes))
       nil
     ;; Use start of class as search boundary
     (let* ((class-def (moka-tags-lookup-identifier (car classes)))
            (start-line (moka-tags-definition-line class-def))
            (local-def (moka-tags-find-declaration (car identifiers) start-line)))
-      (moka-tags-message "Local tag-def=%S" local-def)
+      (moka-message "Local tag-def=%S" local-def)
       (if local-def
           ;; If there are more identifiers, look them up. Otherwise, return the
           ;; definition of the local variable.
@@ -823,14 +679,14 @@ Return nil if there are no matching members."
         ;; preceding class or object - lookup members in "this" class
         (if (null identifiers)
             (setq identifiers (list "this")))
-        (moka-tags-message "Identifiers=%s, to-be-completed=`%s'" identifiers to-be-completed)
+        (moka-message "Identifiers=%s, to-be-completed=`%s'" identifiers to-be-completed)
         (setq last-identifier (car (reverse identifiers)))
 
         ;; Find definition of identifier
         (setq definition (moka-tags-local-tags-lookup identifiers surrounding-classes))
         (unless definition
           (setq definition (moka-tags-recursive-tags-lookup identifiers surrounding-classes)))
-        (moka-tags-message "Definition=%s" definition)
+        (moka-message "Definition=%s" definition)
 
         ;; If we found a definition of the identifier
         (when definition
@@ -838,16 +694,16 @@ Return nil if there are no matching members."
           (setq lookup-classes (moka-tags-get-class-list (if (moka-tags-type-p definition)
                                                          (moka-tags-definition-class definition)
                                                        (moka-tags-definition-type definition))))
-          (moka-tags-message "Look in classes=%s, surrounding classes=%s"
+          (moka-message "Look in classes=%s, surrounding classes=%s"
                          lookup-classes surrounding-classes)
 
           ;; For each class in lookup-classes, lookup its members
           (dolist (class lookup-classes)
             (setq class-members (moka-tags-lookup-class-members class))
-            ;; (moka-tags-message "All members in `%s' (%d)=%s" class (length class-members) class-members)
+            ;; (moka-message "All members in `%s' (%d)=%s" class (length class-members) class-members)
 
             ;; Keep only visible members
-            (setq class-members (moka-tags-filter-list
+            (setq class-members (moka-filter-list
                                  class-members
                                  (lambda (x)
                                    (cond ((get-text-property 0 'private x)
@@ -855,16 +711,16 @@ Return nil if there are no matching members."
                                          ((get-text-property 0 'protected x)
                                           (member class surrounding-classes))
                                          (t t)))))
-            (moka-tags-message "Visible members in `%s' (%d)=%s" class (length class-members) class-members)
+            (moka-message "Visible members in `%s' (%d)=%s" class (length class-members) class-members)
 
             ;; If looking up members in a class, and not an object, keep only static members
             ;; Special handling of string literals, and keywords class, super, and this
             (when (and (moka-tags-type-p definition)
                        (not (string-match "^\\(class\\|super\\|#stringliteral#\\|this\\)$" last-identifier)))
-              (setq class-members (moka-tags-filter-list
+              (setq class-members (moka-filter-list
                                    class-members
                                    (lambda (x) (get-text-property 0 'static x))))
-              (moka-tags-message "Static members in `%s' (%d)=%s" class (length class-members) class-members))
+              (moka-message "Static members in `%s' (%d)=%s" class (length class-members) class-members))
 
             ;; Add text property for inherited class members
             (unless (equal class (car lookup-classes))
@@ -875,14 +731,14 @@ Return nil if there are no matching members."
           ;; If there are any visible members
           (when members
             ;; Find matching members
-            (setq members (moka-tags-filter-list
+            (setq members (moka-filter-list
                            members
                            (lambda (x) (string-match (concat "^" to-be-completed) x))))
-            ;; (moka-tags-message "Matching members (%d)=%s" (length members) members)
+            ;; (moka-message "Matching members (%d)=%s" (length members) members)
 
             ;; Remove duplicates
-            (setq members (moka-tags-uniqify-list members))
-            (moka-tags-message "Unique members (%d)=%s" (length members) members)
+            (setq members (moka-uniqify-list members))
+            (moka-message "Unique members (%d)=%s" (length members) members)
 
             ;; If there are any matching members, return a list beginning with
             ;; the identifier to be completed, and ending with the matching
@@ -919,7 +775,7 @@ means that you can call this function before creating the tags table files."
            ;; Add `buffer-tag-table' if defined
            (when (and (boundp 'buffer-tag-table) buffer-tag-table)
              (when (file-directory-p buffer-tag-table)
-               (setq buffer-tag-table (concat (moka-tags-file-name-directory buffer-tag-table) "TAGS")))
+               (setq buffer-tag-table (concat (moka-file-name-directory buffer-tag-table) "TAGS")))
              (push buffer-tag-table result))
 
            ;; Add matching items from `tag-table-alist'
@@ -937,10 +793,10 @@ means that you can call this function before creating the tags table files."
                (setq expression (ignore-errors (eval (cdr item))))
                ;; If expression is a directory name, add file name TAGS.
                (when (file-directory-p expression)
-                 (setq expression (concat (moka-tags-file-name-directory expression) "TAGS")))
+                 (setq expression (concat (moka-file-name-directory expression) "TAGS")))
                (push expression result)))
            (or result (error "Buffer has no associated tag tables"))
-           (moka-tags-uniqify-list (nreverse result))))))
+           (moka-uniqify-list (nreverse result))))))
 
 (defun moka-tags-lookup-identifier (class &optional member package-list)
   "Look up an identifier in the tags table files, and return its DEFINITION.
@@ -954,7 +810,7 @@ to verify that CLASS belongs to one of the packages in the list, see function
 Looking up a constructor will work if CLASS is equal to MEMBER, and CLASS has
 a defined constructor. Default constructors will not be looked up."
   (save-excursion
-    (moka-tags-message "Class=`%s', member=`%s', packages=%S" class member package-list)
+    (moka-message "Class=`%s', member=`%s', packages=%S" class member package-list)
 
     (let ((case-fold-search nil)
           (tags-list (moka-tags-buffer-tag-table-list)))
@@ -963,7 +819,7 @@ a defined constructor. Default constructors will not be looked up."
           (moka-tags-visit-tags-table-buffer (car tags-list))
           (goto-char (point-min))
 
-          ;; (moka-tags-message "Looking in tags file `%s'" (buffer-file-name))
+          ;; (moka-message "Looking in tags file `%s'" (buffer-file-name))
           (let (class-pos
                 next-class-pos
                 type-line-pos
@@ -980,7 +836,7 @@ a defined constructor. Default constructors will not be looked up."
 
               ;; Find file name
               (setq file-name (moka-tags-get-tagged-file class-pos))
-              (moka-tags-message "Found class in file `%s'" file-name)
+              (moka-message "Found class in file `%s'" file-name)
 
               ;; If the package is right, find all methods and attributes
               (when (moka-tags-right-package-p file-name package-list)
@@ -988,7 +844,7 @@ a defined constructor. Default constructors will not be looked up."
                 ;; Get member type
                 (goto-char class-pos)
                 (setq type-line-pos (moka-tags-get-tagged-type-line-pos class member next-class-pos))
-                ;; (moka-tags-message "Type-line-pos=%S" type-line-pos)
+                ;; (moka-message "Type-line-pos=%S" type-line-pos)
 
                 ;; If we found a match
                 (when type-line-pos
@@ -1013,7 +869,7 @@ The optional argument PACKAGE-LIST is a list of package names, or fully
 qualified class names. If specified, a check is made to verify that CLASS
 belongs to one of the packages in the list, see `moka-tags-right-package-p'."
   (save-excursion
-    (moka-tags-message "Class=`%s', packages=%S" class package-list)
+    (moka-message "Class=`%s', packages=%S" class package-list)
     (let ((case-fold-search nil)
           (tags-list (moka-tags-buffer-tag-table-list)))
       (block while-tags-list
@@ -1021,7 +877,7 @@ belongs to one of the packages in the list, see `moka-tags-right-package-p'."
           (moka-tags-visit-tags-table-buffer (car tags-list))
           (goto-char (point-min))
 
-          ;; (moka-tags-message "Looking in tags file `%s'" (buffer-file-name))
+          ;; (moka-message "Looking in tags file `%s'" (buffer-file-name))
           (let (class-pos
                 next-class-pos
                 file-name)
@@ -1037,7 +893,7 @@ belongs to one of the packages in the list, see `moka-tags-right-package-p'."
 
               ;; Find file name
               (setq file-name (moka-tags-get-tagged-file class-pos))
-              (moka-tags-message "Found class in file `%s'" file-name)
+              (moka-message "Found class in file `%s'" file-name)
 
               ;; If the package is right, find all methods and attributes
               (when (moka-tags-right-package-p file-name package-list)
@@ -1063,7 +919,7 @@ MEMBER is not found. Used by `moka-tags-lookup-identifier'."
                 (line (match-string 6))
                 (pos (match-string 7)))
             (when (string-equal member found-member)
-              (moka-tags-message "Found member `%s' at pos %s" member pos)
+              (moka-message "Found member `%s' at pos %s" member pos)
 
               ;; If another member is declared at the same point this is an invalid tag
               (unless (moka-tags-next-member-same-pos-p member pos bound)
@@ -1102,7 +958,7 @@ This function exists because of a bug in the etags program in GNU Emacs 21."
             (let ((next-member (match-string 3))
                   (next-pos (match-string 7)))
               (when (string-equal pos next-pos)
-                ;; (moka-tags-message "Found members `%s' and `%s' at same pos, ignoring `%s'" member next-member member)
+                ;; (moka-message "Found members `%s' and `%s' at same pos, ignoring `%s'" member next-member member)
                 next-member)))))))
 
 (defun moka-tags-get-tagged-members (class bound)
@@ -1117,7 +973,7 @@ final, private, protected, public, and static."
     (while (re-search-forward moka-tags-tag-line-regexp bound t)
       (let ((member (match-string 3))
             (pos (match-string 7)))
-        ;; (moka-tags-message "Found member `%s' at pos %s" member pos)
+        ;; (moka-message "Found member `%s' at pos %s" member pos)
 
         (unless (or (moka-tags-next-member-same-pos-p member pos bound)
                     (member member member-list)
@@ -1166,14 +1022,14 @@ card character \"*\"."
   (if (null package-list)
       't
     (block while-package-list
-      ;; (moka-tags-message "Comparing package in file `%s'" file-name)
+      ;; (moka-message "Comparing package in file `%s'" file-name)
       (while package-list
         (let ((package (car package-list)))
 
           ;; Replace * with [A-Za-z0-9_]+ in package
           (setq package (replace-regexp-in-string "\\*" "[A-Za-z0-9_]+" package))
           (setq package (concat package "\\\.java$"))
-          ;; (moka-tags-message "Comparing to package `%s'" package)
+          ;; (moka-message "Comparing to package `%s'" package)
 
           ;; If packages match, (return-from while-package-list 't)
           (if (string-match package file-name)
@@ -1184,13 +1040,13 @@ card character \"*\"."
   "Find all classes defined in FILE and return a list of (class . line) pairs."
   (save-excursion
     (setq file (replace-regexp-in-string "\\\\" "/" file))
-    (moka-tags-message "Finding classes in file `%s'" file)
+    (moka-message "Finding classes in file `%s'" file)
     (let* ((case-fold-search nil)
            (tags-list (moka-tags-buffer-tag-table-list))
            bound)
       (block while-tags-list
         (while tags-list
-          ;; (moka-tags-message "Looking in tags table file `%s'" (car tags-list))
+          ;; (moka-message "Looking in tags table file `%s'" (car tags-list))
           (moka-tags-visit-tags-table-buffer (car tags-list))
           (goto-char (point-min))
 
@@ -1198,7 +1054,7 @@ card character \"*\"."
           (when (let ((case-fold-search t)) (search-forward file nil t))
             (save-excursion
               (setq bound (search-forward "" nil t)))
-            ;; (moka-tags-message "Search limits = [%s, %s]" (point) bound)
+            ;; (moka-message "Search limits = [%s, %s]" (point) bound)
             (return-from while-tags-list (moka-tags-do-find-classes bound)))
 
           ;; Look in the next tags file
@@ -1214,10 +1070,10 @@ The optional argument BOUND bounds the search; it is a buffer position."
       ;; If we found a match, save class name and find line of declaration
       (let ((class (match-string 2))
             line)
-        (moka-tags-message "Found class `%s' at pos %s in tags file" class (point))
+        (moka-message "Found class `%s' at pos %s in tags file" class (point))
         (re-search-forward "\\([0-9]+\\),[0-9]+" bound t)
         (setq line (string-to-number (match-string 1)))
-        ;; (moka-tags-message "Class `%s' starts on line %d in source code" class line)
+        ;; (moka-message "Class `%s' starts on line %d in source code" class line)
         (setq result (cons (cons class line) result))))
     result))
 
@@ -1233,7 +1089,7 @@ Run the etags program and update all tags table files in `tags-table-list'
 after first querying the user about each file."
   (interactive)
   (let ((tags-list (moka-tags-buffer-tag-table-list)))
-    (set-buffer (get-buffer-create moka-tags-buffer-name))
+    (set-buffer (get-buffer-create moka-temp-buffer-name))
     (map-y-or-n-p "Update %s? " 'moka-tags-update-tags-file tags-list)))
 
 (defun moka-tags-update-this-tags-file ()
@@ -1243,11 +1099,11 @@ Use `tags-table-list' to find the tags table file in which the class
 in the current buffer is tagged. Update the tags table file using the
 etags program."
   (interactive)
-  (let ((norm-default-dir (moka-tags-file-name-directory default-directory)))
-    (moka-tags-message "Normalized default directory=`%s'" norm-default-dir)
+  (let ((norm-default-dir (moka-file-name-directory default-directory)))
+    (moka-message "Normalized default directory=`%s'" norm-default-dir)
     (dolist (tags-file (moka-tags-buffer-tag-table-list))
-      (let* ((norm-tags-dir (moka-tags-file-name-directory tags-file)))
-        (moka-tags-message "Checking tags file `%s'" norm-tags-dir)
+      (let* ((norm-tags-dir (moka-file-name-directory tags-file)))
+        (moka-message "Checking tags file `%s'" norm-tags-dir)
 
         ;; If we have found the right tags file, update it
         (when (string-match norm-tags-dir norm-default-dir)
@@ -1277,14 +1133,14 @@ resulting shell command in directory DIR-NAME. This normally includes running
 the etags program, so the Emacs \"bin\" directory must be in your path."
   (let ((command (replace-regexp-in-string "%f" file-name moka-tags-etags-command))
         (original-directory default-directory))
-    (moka-tags-message "Shell command=%s" command)
+    (moka-message "Shell command=%s" command)
     (cd dir-name)
 
     ;; Don't try to update if file is not writable
     (if (not (file-writable-p file-name))
         (error "Cannot update tags file: permission denied, %s" dir-name)
       (message "Updating tags file in %s..." dir-name)
-      (shell-command command moka-tags-buffer-name)
+      (shell-command command moka-temp-buffer-name)
       (message "Updating tags file in %s...done" dir-name))
 
     (cd original-directory)))
@@ -1301,7 +1157,7 @@ string, e.g. \"foo\" is found, the string \"#stringliteral#\" is returned, and
 the point is set to the end of the string. Return nil if no identifier can be
 found."
   (let ((end (point)))
-    (moka-tags-message "Before='%c', after='%c'" (char-before) (char-after))
+    (moka-message "Before='%c', after='%c'" (char-before) (char-after))
     (cond ((looking-back "[A-Za-z0-9_]")                ; identifier?
            (skip-chars-backward "A-Za-z0-9_")
            (buffer-substring-no-properties (point) end))
@@ -1343,10 +1199,10 @@ Class.forName(\"Foo\") -> (\"Class\" \"forName\")"
         ;; If in comment now, but not from the beginning, stop searching
         (if (and (c-in-literal) (not parse-in-literal))
             (setq identifier nil)
-          (moka-tags-message "Adding identifier '%s'" identifier)
+          (moka-message "Adding identifier '%s'" identifier)
           (setq result (cons identifier result))
           (setq identifier (moka-tags-find-identifier-backward))))
-      (moka-tags-message "Result=%S" result)
+      (moka-message "Result=%S" result)
       result)))
 
 (defun moka-tags-beginning-of-method (&optional bound)
@@ -1364,10 +1220,10 @@ search is bounded by BOUND, which should be the start of the class."
 
         ;; Search backward for method declaration
         (while (and (null start-pos) (re-search-backward start-regexp bound t))
-          (moka-tags-message "Regexp match `%s'" (match-string 0))
+          (moka-message "Regexp match `%s'" (match-string 0))
           (let ((return-type (buffer-substring-no-properties (match-beginning 2) (match-end 2)))
                 (method-name (buffer-substring-no-properties (match-beginning 5) (match-end 5))))
-            (moka-tags-message "Found method `%s' with return type `%s'" method-name return-type)
+            (moka-message "Found method `%s' with return type `%s'" method-name return-type)
 
             ;; Ignore invalid method names, return types, and declarations in comments and strings
             (goto-char (match-beginning 2))
@@ -1392,8 +1248,8 @@ with the following elements:
   line        ; The line number where the declaration starts
   pos)        ; The position where the declaration starts"
   (save-excursion
-    (moka-tags-message "Finding declaration of identifier `%s', class starts at %s" var class-start-line)
-    (let* ((class-start-pos (moka-tags-line-to-point class-start-line))
+    (moka-message "Finding declaration of identifier `%s', class starts at %s" var class-start-line)
+    (let* ((class-start-pos (moka-line-to-point class-start-line))
            (method-start-pos (save-excursion (moka-tags-beginning-of-method class-start-pos)))
            (decl-regexp (concat "[ \t\n\(]"
                                 moka-tags-type-regexp
@@ -1402,7 +1258,7 @@ with the following elements:
                                 ;; SEARCH IDENT
                                 var "[ \t\n]*[,=:;[\)]"))
            result)
-      (moka-tags-message "Class starts at `%s', method starts at `%s'" class-start-pos method-start-pos)
+      (moka-message "Class starts at `%s', method starts at `%s'" class-start-pos method-start-pos)
 
       ;; If point is in identifier, goto end of identifier
       (skip-chars-forward "[A-Za-z0-9_]")
@@ -1412,19 +1268,19 @@ with the following elements:
                   (null result)
                   (re-search-backward decl-regexp method-start-pos t))
         (let ((type (buffer-substring-no-properties (match-beginning 2) (match-end 2)))
-              (line (moka-tags-get-line))
+              (line (moka-get-line))
               (pos (match-beginning 2)))
-          (moka-tags-message "Found type `%s' for `%s'" type var)
+          (moka-message "Found type `%s' for `%s'" type var)
 
           ;; Ignore invalid types, and declarations in comments and strings
           (unless (or (string-match "^\\(instanceof\\|new\\|return\\|static\\|throws?\\)$" type)
                       (c-in-literal))
 
             ;; We found a valid declaration
-            (moka-tags-message "Found declaration on line %s" line)
+            (moka-message "Found declaration on line %s" line)
             (setq result (list type line pos)))))
 
-      ;; (moka-tags-message "Type-line-pos=%S" result)
+      ;; (moka-message "Type-line-pos=%S" result)
       result)))
 
 (defun moka-tags-find-package ()
@@ -1436,7 +1292,7 @@ with the following elements:
                   (re-search-forward "^package[ \t\n]+\\([^;]+\\);" nil t))
         (let ((beginning (match-beginning 1))
               (end (match-end 1)))
-          (moka-tags-message "Regexp match=`%s'" (buffer-substring-no-properties beginning end))
+          (moka-message "Regexp match=`%s'" (buffer-substring-no-properties beginning end))
           (goto-char beginning)
           ;; Ignore statement in comments and strings
           (unless (c-in-literal)
@@ -1463,15 +1319,15 @@ current buffer. The package names may, or may not end with \".*\"."
       (while (re-search-forward "^import[ \t\n]+\\\([^;]+\\\);" nil t)
         (let ((beginning (match-beginning 1))
               (end (match-end 1)))
-          (moka-tags-message "Regexp match=`%s'" (buffer-substring-no-properties beginning end))
+          (moka-message "Regexp match=`%s'" (buffer-substring-no-properties beginning end))
           (goto-char beginning)
           ;; Ignore statement in comments and strings
           (unless (c-in-literal)
             (let* ((package-name (buffer-substring-no-properties beginning end))
                    (clean-name (replace-regexp-in-string "[ \t\n]" "" package-name)))
-              (moka-tags-message "Package=`%s', cleaned=`%s'" package-name clean-name)
+              (moka-message "Package=`%s', cleaned=`%s'" package-name clean-name)
               (setq list (cons clean-name list))))))
-      (moka-tags-uniqify-list (nreverse list)))))
+      (moka-uniqify-list (nreverse list)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Functions for showing Javadoc:
@@ -1479,13 +1335,13 @@ current buffer. The package names may, or may not end with \".*\"."
 
 (defun moka-tags-find-javadoc (class package javadoc-root-list)
   "This method has been deprecated, and will be removed."
-  (message "Variable moka-tags-javadoc-root-list has been deprecated, use moka-tags-javadoc-root-alist instead.")
+  (message "Variable moka-javadoc-root-list has been deprecated, use moka-javadoc-root-alist instead.")
   (dolist (javadoc-root javadoc-root-list)
-    (setq javadoc-root (moka-tags-file-name-directory javadoc-root))
-    (moka-tags-message "Normalized javadoc-root: `%s'" javadoc-root)
+    (setq javadoc-root (moka-file-name-directory javadoc-root))
+    (moka-message "Normalized javadoc-root: `%s'" javadoc-root)
 
     (let ((javadoc-file (concat javadoc-root package "/" class ".html")))
-      (moka-tags-message "Looking for Javadoc file `%s'" javadoc-file)
+      (moka-message "Looking for Javadoc file `%s'" javadoc-file)
       (if (file-regular-p javadoc-file)
           (return javadoc-file)))))
 
@@ -1496,86 +1352,33 @@ current buffer. The package names may, or may not end with \".*\"."
     (if (not javadoc-file)
         (message "Documentation not found!")
       (message "Displaying URL %s" javadoc-file)
-      (funcall moka-tags-browse-url-function javadoc-file))))
+      (funcall moka-browser-url-function javadoc-file))))
 
 (defun moka-tags-browse-url (definition)
   "Show Javadoc for the class in DEFINITION in the configured browser.
-Use variable `moka-tags-javadoc-root-alist' to find the Javadoc URL for the
+Use variable `moka-javadoc-root-alist' to find the Javadoc URL for the
 class, and display it in the configured browser."
-  (moka-tags-message "Definition=%S" definition)
+  (moka-message "Definition=%S" definition)
   (let ((package-name (moka-tags-definition-package definition))
         (class-name (moka-tags-definition-class definition)))
     (if (null package-name)
         (setq package-name ""))
-    (moka-tags-message "Looking for Javadoc for class `%s' in package `%s'" class-name package-name)
-    (if moka-tags-javadoc-root-list
+    (moka-message "Looking for Javadoc for class `%s' in package `%s'" class-name package-name)
+    (if moka-javadoc-root-list
         (moka-tags-browse-url-old package-name class-name)
 
     ;; Find matching javadoc root
-    (let ((javadoc-root (assoc-default package-name moka-tags-javadoc-root-alist 'string-match)))
+    (let ((javadoc-root (assoc-default package-name moka-javadoc-root-alist 'string-match)))
       (if (not javadoc-root)
           (message "Documentation not found!")
-        (moka-tags-message "Found javadoc-root `%s'" javadoc-root)
+        (moka-message "Found javadoc-root `%s'" javadoc-root)
         (setq package-name (replace-regexp-in-string "\\\." "/" package-name))
         (if (not (string-match "/$" javadoc-root))
             (setq javadoc-root (concat javadoc-root "/")))
         (let ((javadoc-file (concat javadoc-root package-name "/" class-name ".html")))
           (message "Displaying URL %s" javadoc-file)
-          (funcall moka-tags-browse-url-function javadoc-file)))))))
+          (funcall moka-browser-url-function javadoc-file)))))))
 
-;; ----------------------------------------------------------------------------
-;; Initialization:
-;; ----------------------------------------------------------------------------
-
-(defvar moka-tags-mode-map nil
-  "Keymap used when moka-tags mode is enabled.")
-
-(unless moka-tags-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?\,)]   'moka-tags-member-completion)
-    (define-key map [(meta ?\,)]      'moka-tags-show-declaration)
-    (define-key map [(meta f1)]       'moka-tags-show-documentation)
-    (define-key map [(control c) ?\,] 'moka-tags-update-this-tags-file)
-    (setq moka-tags-mode-map map)))
-
-(defvar moka-tags-menu-list
-  (list "Moka-Tags"
-        ["Member completion" moka-tags-member-completion t]
-        ["Show declaration" moka-tags-show-declaration t]
-        ["Show documentation" moka-tags-show-documentation t]
-        "--"
-        ["Update this tags file" moka-tags-update-this-tags-file t]
-        ["Update all tags files" moka-tags-update-tags-files t])
-  "Moka-Tags submenu definition.")
-
-;; Define a menu, and put it in the `moka-tags-mode-map'.
-(easy-menu-define moka-tags-menu moka-tags-mode-map
-  "Provides menu items for accessing moka-tags functionality."
-  moka-tags-menu-list)
-
-;;;###autoload (add-hook 'java-mode-hook 'moka-tags-mode)
-
-;;;###autoload
-(define-minor-mode moka-tags-mode
-  "Toggle moka-tags mode.
-With arg, turn moka-tags mode on if arg is positive.
-
-When moka-tags mode is enabled, a number of improved tags lookup commands are
-available, as shown below. moka-tags mode provides commands for looking up the
-identifier before or around point, completing partly typed identifiers, and
-managing tags table files.
-
-\\{moka-tags-mode-map}"
-  nil
-  nil
-  moka-tags-mode-map
-  (if moka-tags-mode
-      (if moka-tags-display-menu-flag
-          (easy-menu-add moka-tags-menu-list moka-tags-mode-map))
-    (if moka-tags-display-menu-flag
-        (easy-menu-remove moka-tags-menu-list))))
-
-;; ----------------------------------------------------------------------------
 
 (provide 'moka-tags)
 

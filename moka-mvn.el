@@ -1,13 +1,13 @@
 ;;; maven.el --- helpers for compiling with maven
 
-;; Copyright (C) 2013 Andrew Gwozdziewycz <git@apgwoz.com>
+;; Copyright (C) 2013 Andrew Gwozdziewycz
 
 ;; Version: 0.1
-;; Keywords: compilation, maven, java
-
-;; This file is NOT part of GNU Emacs
-
-;; This file IS part of Moka-mode
+;; Author: Andrew Gwozdziewycz <git@apgwoz.com>
+;; Created: Oct 2013
+;; Version: 0.3.0
+;; Keywords: languages, tools, compilation, maven
+;; URL: https://github.com/apgwoz/moka-mode
 
 ;; This is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
@@ -24,43 +24,44 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; This file is NOT part of GNU emacs. It is however part of moka-mode
+
+;;; Commentary:
+
+;; This file is in flux, and is sparsely documented. Please excuse.
+
+
+(defcustom moka-mvn-build-file-name "pom.xml"
+  "Name of the mvn project file. This is usually `pom.xml`,
+however it is possible to invoke maven with an alternative
+filename.  TODO: always invoke mvn with the -f flag to specify
+the pom.xml (or if it's customized, that file)
+"
+  :type 'string
+  :group 'moka)
+
+(defcustom moka-mvn-command "mvn"
+  "Name of maven command. This can be a fully qualified path
+should the executable be installed somewhere that isn't on 
+the path"
+  :type 'string
+  :group 'moka)
+
 (defvar moka-mvn-last-task "compile")
-(defvar moka-mvn-build-file-name "pom.xml")
-(defvar moka-mvn-command "mvn")
-
-(defvar moka-mvn-tasks-default '("compile" "test" "clean"))
-
-(defun moka-mvn-find-tasks (directory)
-  (let ((output (shell-command-to-string (concat *moka-mvn-tasks-command* " "
-                                                 directory "/"
-                                                 moka-mvn-build-file-name))))
-    (message output)
-    (if (> (length output) 0)
-        (mapcar '(lambda (x) (replace-regexp-in-string ".*<target.*name=\"\\([^\-][^\"]*\\).*" "\\1" x)) 
-                (split-string output "[\n]"))
-      nil)))
-
-;; should cache tasks from the build file at some point
-(defun moka-mvn-tasks (directory)
-  (let ((tasks (assoc-string directory *moka-mvn-tasks-cache*)))
-    (cdr 
-     (or tasks
-         (progn 
-           (let ((newtasks (or (moka-mvn-find-tasks directory) moka-mvn-tasks-default)))
-             (setq *moka-mvn-tasks-cache*
-                   (cons (cons directory newtasks) *moka-mvn-tasks-cache*))
-             newtasks))))))
+(defvar moka-mvn-tasks-default '("compile" "test" "clean" "install" "package"))
 
 (defun moka-mvn-get-task (directory)
-  (let ((task (completing-read-multiple (concat "Goal (default): ") 
+  (let ((task (completing-read-multiple "Goal (default): " 
                                         moka-mvn-tasks-default)))
     (if (> (length task) 0)
         (mapconcat 'identity task " ")
       "")))
 
-(defun moka-mvn-find-root (indicator)
-  (let ((cwd default-directory))
-    (locate-dominating-file cwd moka-mvn-build-file-name)))
+(defun moka-mvn-find-root (&optional indicator directory)
+  (let ((cwd (or directory default-directory))
+        (indicator (or indicator moka-mvn-build-file-name)))
+    (message (concat "cwd: " cwd " indicator: " indicator))
+    (locate-dominating-file cwd indicator)))
 
 (defun moka-mvn-kill-cache ()
   (interactive)
@@ -94,5 +95,26 @@
   (if prefix
       (mvn "test" (concat "-Dtest=" prefix))
     (mvn "test")))
+
+
+;; temporary. All of this stuff should change directory to the directory before running
+(defun moka-mvn-classpath (directory)
+  "Determines the classpath used by mvn for a project"
+  (let* ((root (moka-mvn-find-root))
+         (pom (progn 
+                (concat 
+                 root
+                 (if (string-equal (substring root -1) "/") "" "/")
+                 moka-mvn-build-file-name) )))
+    (let* ((output (shell-command-to-string 
+                   (concat moka-mvn-command " -f " pom " dependency:build-classpath")))
+           (lines (moka-filter-list 
+                   (split-string output "\n")
+                   (lambda (x) (not 
+                                (or (string-equal x "")
+                                    (string-equal (substring x 0 1) "[")))))))
+      (if (null lines)
+          nil
+          (split-string (car lines) ":")))))
 
 (provide 'moka-mvn)
