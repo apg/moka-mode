@@ -67,7 +67,7 @@ the path"
   (interactive)
   (setq *moka-mvn-tasks-cache* '()))
 
-(defun mvn (&optional task args)
+(defun moka-mvn (&optional task args)
   "Run mvn `task` in project root directory."
   (interactive)
   (let ((default-directory (moka-mvn-find-root moka-mvn-build-file-name)))

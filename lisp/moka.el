@@ -31,7 +31,7 @@ This function will be called with one argument: the URL to display."
   :group 'moka
   :type 'function)
 
-(defcustom moka-tags-display-menu-flag 't
+(defcustom moka-display-menu-flag 't
   "*Non-nil means that the moka-tags submenu will be added to the menu bar.
 Set this variable to nil if you do not want to use the moka-tags submenu. If
 non-nil, the submenu will be displayed when moka-tags mode is active."
@@ -49,7 +49,7 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
 ;; Require all the other stuff
 (require 'moka-lib)
 (require 'moka-tags)
-(require 'moka-extras)
+(require 'moka-cleanup)
 (require 'moka-mvn)
 
 
@@ -62,10 +62,10 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
     (define-key map [(meta ?\,)]      'moka-tags-show-declaration)
     (define-key map [(meta f1)]       'moka-tags-show-documentation)
     (define-key map [(control c) ?\,] 'moka-tags-update-this-tags-file)
-    (define-key moka-tags-mode-map [(control c) ?\+] 'moka-cleanup-add-import)
-    (define-key moka-tags-mode-map [(control c) ?\=] 'moka-cleanup-organize-imports)
+    (define-key map [(control c) ?\+] 'moka-cleanup-add-import)
+    (define-key map [(control c) ?\=] 'moka-cleanup-organize-imports)
 
-    (setq moka-tags-mode-map map)))
+    (setq moka-mode-map map)))
 
 (defvar moka-menu-list
   (list "Moka"
