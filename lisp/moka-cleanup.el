@@ -60,7 +60,7 @@
 ;; Customization:
 ;; ----------------------------------------------------------------------------
 
-(defcustom moka-clean-import-order-list
+(defcustom moka-cleanup-import-order-list
   '("^java\\."
     "^javax\\."
     "-"
@@ -155,7 +155,6 @@ statements as specified in `moka-cleanup-import-order-list'."
   "Add an import statement for the identifier in DEFINITION.
 Check that the class or interface is not already imported, move to after
 the last existing import statement, and insert a new import statement."
-  (interactive "sClass?")
   (save-excursion
     (moka-message "Definition=%s" definition)
 
@@ -178,7 +177,7 @@ the last existing import statement, and insert a new import statement."
         ;; If there are no import statements, but a package statement, insert
         ;; an extra newline to make things look better
         (if (and (= (length import-list) 2)
-                 (moka-find-package))
+                 (moka-tags-find-package))
             (insert "\n"))
 
         ;; Insert import statement
@@ -187,7 +186,7 @@ the last existing import statement, and insert a new import statement."
         ;; If there are no import statements, and no package statement,
         ;; insert an extra newline to make things look better
         (if (and (= (length import-list) 1)
-                 (not (moka-find-package)))
+                 (not (moka-tags-find-package)))
             (insert "\n"))
 
         ;; Organize import statements, including the new one

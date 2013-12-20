@@ -48,6 +48,7 @@ the path"
   :group 'moka)
 
 (defvar moka-mvn-last-task "compile")
+(defvar moka-mvn-last-test "")
 (defvar moka-mvn-tasks-default '("compile" "test" "clean" "install" "package"))
 
 (defun moka-mvn-get-task (directory)
@@ -80,41 +81,43 @@ the path"
 (defun moka-mvn-last ()
   "Run the last maven task in project"
   (interactive)
-  (mvn (or moka-mvn-last-task "")))
+  (moka-mvn (or moka-mvn-last-task "")))
 
 (defun moka-mvn-compile ()
   (interactive)
-  (mvn "compile"))
+  (moka-mvn "compile"))
 
 (defun moka-mvn-clean ()
   (interactive)
-  (mvn "clean"))
+  (moka-mvn "clean"))
 
-(defun moka-mvn-test (prefix)
-  (interactive "MTest: ")
-  (if prefix
-      (mvn "test" (concat "-Dtest=" prefix))
-    (mvn "test")))
+(defun moka-mvn-test (&optional prefix)
+  (interactive 
+   (if (null current-prefix-arg)
+       (list "")
+     (list (read-string "Test: " moka-mvn-last-test nil ""))))
+  (if (> (length prefix) 0) 
+      (progn
+        (setq moka-mvn-last-test prefix)
+        (moka-mvn "test" (concat "-Dtest=" prefix)))
+    (moka-mvn "test")))
 
 
 ;; temporary. All of this stuff should change directory to the directory before running
-(defun moka-mvn-classpath (directory)
+(defun moka-mvn-classpath ()
   "Determines the classpath used by mvn for a project"
-  (let* ((root (moka-mvn-find-root))
-         (pom (progn 
-                (concat 
-                 root
-                 (if (string-equal (substring root -1) "/") "" "/")
-                 moka-mvn-build-file-name) )))
-    (let* ((output (shell-command-to-string 
-                   (concat moka-mvn-command " -f " pom " dependency:build-classpath")))
-           (lines (moka-filter-list 
-                   (split-string output "\n")
-                   (lambda (x) (not 
-                                (or (string-equal x "")
-                                    (string-equal (substring x 0 1) "[")))))))
-      (if (null lines)
-          nil
-          (split-string (car lines) ":")))))
+  (let ((default-directory (moka-mvn-find-root moka-mvn-build-file-name)))
+    (if default-directory
+        (let* ((output (shell-command-to-string 
+                        (concat moka-mvn-command " dependency:build-classpath")))
+               (lines (moka-filter-list
+                       (split-string output "\n")
+                       (lambda (x) (not
+                                    (or (string-equal x "")
+                                        (not (string-equal (substring x 0 1) "/") )))))))
+          (if (null lines)
+              nil
+            (split-string (car lines) ":")))
+      (message "Couldn't find a maven project."))))
 
 (provide 'moka-mvn)

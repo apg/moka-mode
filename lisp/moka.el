@@ -52,7 +52,6 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
 (require 'moka-cleanup)
 (require 'moka-mvn)
 
-
 (defvar moka-mode-map nil
   "Keymap used when moka mode is enabled.")
 
