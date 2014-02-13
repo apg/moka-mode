@@ -33,6 +33,7 @@
 ;;                                  around or before point
 ;; - moka-cleanup-organize-imports: order and format the import statements in
 ;;                                  the current source code file
+;; - moka-cleanup-close-project     close all buffers associated with current project.
 
 ;; Configuration:
 
@@ -148,6 +149,29 @@ statements as specified in `moka-cleanup-import-order-list'."
 
       ;; Insert new blank lines, according to moka-cleanup-import-order-list
       (moka-cleanup-insert-ws-region (car import-region) (cdr import-region)))))
+
+
+(defun moka-cleanup-close-project ()
+  "Closes all open buffers which are in the current mvn project."
+  (interactive)
+  (let* ((buffers (buffer-list))
+         (project-prefix (expand-file-name (moka-mvn-find-root)))
+         (prefix-length (length project-prefix)))
+    (while buffers
+      (let* ((current (car buffers))
+             (name (buffer-file-name current)))
+        (if (and
+             name
+             (string-equal (substring name 0 (min prefix-length (length name)))
+                           project-prefix))
+            (kill-buffer current)
+          (with-current-buffer current
+            (when (and (equalp major-mode 'dired-mode)
+                       (let ((name (dired-current-directory)))
+                         (string-equal (substring name 0 (min prefix-length (length name)))
+                                       project-prefix)))
+              (kill-buffer current))))
+        (setq buffers (cdr buffers))))))
 
 ;; ----------------------------------------------------------------------------
 
@@ -345,4 +369,3 @@ that belong to the same group are sorted alphabetically within the group."
 (provide 'moka-cleanup)
 
 ;;; moka-cleanup.el ends here
- 

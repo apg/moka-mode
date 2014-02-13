@@ -49,8 +49,8 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
 ;; Require all the other stuff
 (require 'moka-lib)
 (require 'moka-tags)
-(require 'moka-cleanup)
 (require 'moka-mvn)
+(require 'moka-cleanup)
 
 (defvar moka-mode-map nil
   "Keymap used when moka mode is enabled.")
@@ -103,5 +103,3 @@ managing tags table files.
           (easy-menu-add moka-menu-list moka-mode-map))
     (if moka-display-menu-flag
         (easy-menu-remove moka-menu-list))))
-
-
