@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: get
+# key: get
+# --
+public ${2:Type} get${1:Field}() {
+    return this.${1:$(moka-yas-down-first yas-text)};
+}
+
+$0

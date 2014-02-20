@@ -1,0 +1,25 @@
+# -*- mode: snippet -*-
+# name: equals
+# key: :equals
+# --
+public boolean equals(Object other) {
+    if (this == other) {
+        return true;
+    }
+    if ((other == null) || (other.getClass() != this.getClass())) {
+        return false;
+    }
+
+    ${1:`(moka-yas-class-name)`} that = ($1) other;
+    return $0;
+}
+
+`(let ((found (save-excursion
+               (goto-char (point-min))
+               (search-forward "int hashCode()" nil t))))
+  (unless found
+     (concat "public int hashCode() {\n"
+             "    int hash = 17;\n"
+             "    hash = hash + 31 * <FIELDS>;\n"
+             "    return hash;\n"
+             "}\n")))`

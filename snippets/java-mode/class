@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: class
+# key: :class
+# --
+package `(moka-yas-package-name)`;
+
+/**
+ * Class that does things.
+ *
+ * @author `user-full-name`
+ */
+public class ${1:`(moka-yas-class-name)`} {
+    $0
+}

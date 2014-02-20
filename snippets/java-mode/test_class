@@ -1,0 +1,22 @@
+# -*- mode: snippet -*-
+# name: test_class
+# key: :testclass
+# --
+package `(moka-yas-package-name)`;
+
+import org.junit.Test;
+import org.junit.Before;
+
+/**
+ * Test class that tests stuff
+ *
+ * @author `user-full-name`
+ */
+public class ${1:`(moka-yas-class-name)`} {
+    $0
+
+    @Before
+    protected void setUp() {
+
+    }
+}

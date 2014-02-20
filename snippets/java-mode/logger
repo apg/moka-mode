@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: logger
+# key: logger
+# expand-env: ((classname (file-name-nondirectory (file-name-sans-extension (or (buffer-file-name) (buffer-name (current-buffer)))))))
+# --
+private static final Logger LOG = LoggerFactory.getLogger(${1:`classname`}.class);

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: info
+# key: info
+# --
+LOG.info("$1");
+$0

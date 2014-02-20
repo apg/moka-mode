@@ -50,6 +50,7 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
 (require 'moka-lib)
 (require 'moka-tags)
 (require 'moka-mvn)
+(require 'moka-yas)
 (require 'moka-cleanup)
 
 (defvar moka-mode-map nil
