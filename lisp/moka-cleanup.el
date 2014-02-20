@@ -98,6 +98,8 @@ A nil value means that new imports will be added last in the list."
 (defconst moka-cleanup-version "0.3.0"
   "The current version of `moka-cleanup'.")
 
+(defconst moka-cleanup-not-an-import "!NOT-AN-IMPORT!")
+
 ;; ----------------------------------------------------------------------------
 ;; Main functions:
 ;; ----------------------------------------------------------------------------
@@ -139,6 +141,9 @@ statements as specified in `moka-cleanup-import-order-list'."
   (let ((import-region (moka-cleanup-find-import-region)))
 
     (when import-region
+      ;; Remove unused imports, and compute a new region
+      (moka-cleanup-remove-unused-imports (car import-region) (cdr import-region))
+      (setq import-region (moka-cleanup-find-import-region))
 
       ;; Remove all blank lines, and compute a new region
       (moka-cleanup-clean-ws-region (car import-region) (cdr import-region))
@@ -152,7 +157,8 @@ statements as specified in `moka-cleanup-import-order-list'."
 
 
 (defun moka-cleanup-close-project ()
-  "Closes all open buffers which are in the current mvn project."
+  "Closes all open buffers which are in the current mvn project, and remove the
+associated state for this current project."
   (interactive)
   (let* ((buffers (buffer-list))
          (project-prefix (expand-file-name (moka-mvn-find-root)))
@@ -174,6 +180,32 @@ statements as specified in `moka-cleanup-import-order-list'."
         (setq buffers (cdr buffers))))))
 
 ;; ----------------------------------------------------------------------------
+(defun moka-cleanup-remove-unused-imports (start end)
+  "Replaces import lines with spaces to be cleaned up in the next stage of
+import organization. This function searches for the class or static method
+that was being imported outside of the import area."
+  (interactive "r")
+  (save-excursion
+    (moka-message "Removing old imports within region (%d %d)" start end)
+    (goto-char start)
+    (let ((import (moka-cleanup-sort-import-startkeyfun)))
+      (while (< (point) end)
+        (unless (string-equal moka-cleanup-not-an-import import)
+          (let ((item (car
+                       (reverse (split-string import "[.;]" t))))
+                (found nil))
+            (when item
+              (save-excursion
+                (goto-char end)
+                (setq found (re-search-forward item (point-max) t)))
+              (unless found
+                (moka-message "Removing import for line %s. %s not found in file" import item)
+                (let ((e (save-excursion (end-of-line) (point))))
+                  (beginning-of-line)
+                  (delete-char (- e (point)))
+                  (insert-char ?  (- e (point))))))))
+        (forward-line 1)
+        (setq import (moka-cleanup-sort-import-startkeyfun))))))
 
 (defun moka-cleanup-add-import-statement (definition)
   "Add an import statement for the identifier in DEFINITION.
@@ -342,7 +374,7 @@ considered."
 Return a dummy string if this line is not an import statement."
   (if (re-search-forward "import[ \t]+\\([^\n;]*;\\)" (point-at-eol) t)
       (buffer-substring-no-properties (match-beginning 1) (match-end 1))
-    "zzzzz"))
+    moka-cleanup-not-an-import))
 
 (defun moka-cleanup-sort-import-predicate (import1 import2)
   "Return t if IMPORT1 should be sorted before IMPORT2.
@@ -365,6 +397,7 @@ that belong to the same group are sorted alphabetically within the group."
     (if (= index1 index2)
         (string< import1 import2)
       (< index1 index2))))
+
 
 (provide 'moka-cleanup)
 
