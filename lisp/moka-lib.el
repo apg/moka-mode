@@ -8,7 +8,7 @@
 ;; Version: 0.3.0
 ;; Keywords: languages, tools
 ;; Original URL: http://jtags.sourceforge.net
-;; URL: https://github.com/apgwoz/moka-mode
+;; URL: https://github.com/apg/moka-mode
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

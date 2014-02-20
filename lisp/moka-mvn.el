@@ -42,7 +42,7 @@ the pom.xml (or if it's customized, that file)
 
 (defcustom moka-mvn-command "mvn"
   "Name of maven command. This can be a fully qualified path
-should the executable be installed somewhere that isn't on 
+should the executable be installed somewhere that isn't on
 the path"
   :type 'string
   :group 'moka)
@@ -52,7 +52,7 @@ the path"
 (defvar moka-mvn-tasks-default '("compile" "test" "clean" "install" "package"))
 
 (defun moka-mvn-get-task (directory)
-  (let ((task (completing-read-multiple "Goal (default): " 
+  (let ((task (completing-read-multiple "Goal (default): "
                                         moka-mvn-tasks-default)))
     (if (> (length task) 0)
         (mapconcat 'identity task " ")
@@ -92,11 +92,11 @@ the path"
   (moka-mvn "clean"))
 
 (defun moka-mvn-test (&optional prefix)
-  (interactive 
+  (interactive
    (if (null current-prefix-arg)
        (list "")
      (list (read-string "Test: " moka-mvn-last-test nil ""))))
-  (if (> (length prefix) 0) 
+  (if (> (length prefix) 0)
       (progn
         (setq moka-mvn-last-test prefix)
         (moka-mvn "test" (concat "-Dtest=" prefix)))
@@ -108,7 +108,7 @@ the path"
   "Determines the classpath used by mvn for a project"
   (let ((default-directory (moka-mvn-find-root moka-mvn-build-file-name)))
     (if default-directory
-        (let* ((output (shell-command-to-string 
+        (let* ((output (shell-command-to-string
                         (concat moka-mvn-command " dependency:build-classpath")))
                (lines (moka-filter-list
                        (split-string output "\n")
