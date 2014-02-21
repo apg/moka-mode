@@ -194,7 +194,7 @@ that was being imported outside of the import area."
           (let ((item (car
                        (reverse (split-string import "[.;]" t))))
                 (found nil))
-            (when item
+            (when (and item (not (string-equal "*" item)))
               (save-excursion
                 (goto-char end)
                 (setq found (re-search-forward item (point-max) t)))
