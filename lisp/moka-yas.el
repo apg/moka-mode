@@ -45,24 +45,10 @@ camelCase"
         (concat (upcase first) rest))
     ""))
 
-(defun moka-yas-class-name ()
-  (file-name-nondirectory
-   (file-name-sans-extension
-    (or (buffer-file-name) (buffer-name (current-buffer))))))
-
 (defun moka-yas-package-name ()
-  "Finds the likely package in `.` notation.
+  (or (moka-current-package-name) ""))
 
-NOTE: This is likely better off in moka-lib"
-  (let* ((dir-name (file-name-directory (expand-file-name (buffer-file-name))))
-         (dir-name-len (length dir-name))
-         (root (expand-file-name (moka-mvn-find-root)))
-         (root-len (length root)))
-    (if (and (> dir-name-len root-len)
-             (string-equal (substring dir-name 0 root-len) root))
-        (let ((rest-dir-name (substring dir-name root-len (- dir-name-len 1))))
-          (if (= (string-match "src/\\(test\\|main\\)/java/" rest-dir-name) 0)
-              (replace-regexp-in-string "/" "." (substring rest-dir-name 14))
-            "???")))))
+(defalias 'moka-yas-class-name 'moka-current-class-name)
+
 
 (provide 'moka-yas)

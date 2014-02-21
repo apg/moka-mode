@@ -102,6 +102,17 @@ the path"
         (moka-mvn "test" (concat "-Dtest=" prefix)))
     (moka-mvn "test")))
 
+(defun moka-mvn-test-this (&optional prefix)
+  "With a prefix argument, tests the current method in the current file"
+  (interactive "p")
+  (let ((package (moka-current-package-name))
+        (class (moka-current-class-name))
+        (method (and prefix (moka-current-method-name))))
+    (if package
+        (let ((testname (concat package "." class (when method (concat "#" method)))))
+          (setq moka-mvn-last-test testname)
+          (moka-mvn "test" (concat "-Dtest=" testname)))
+      (moka-mvn-test t))))
 
 ;; temporary. All of this stuff should change directory to the directory before running
 (defun moka-mvn-classpath ()

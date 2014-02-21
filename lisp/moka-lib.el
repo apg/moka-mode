@@ -30,6 +30,33 @@
 ;; This file defines utility functions which the rest of the mode relies
 ;; upon.
 
+;;                              PACKAGE                  TYPE NAME          TYPE ARGS       ARRAY OR SPACE
+(defconst moka-type-regexp "\\([A-Za-z0-9_.]+\\\.\\)*\\([A-Za-z0-9_]+\\)\\(<[^>]+>\\)?\\(\\[\\]\\|[ \t\n]\\)+"
+  "Defines a regular expression that matches a Java type.
+The matched string is grouped into subexpressions as described below.
+
+subexp   description
+------   -----------
+
+1        Package name, including the last dot
+2        Type name
+3        Generic type arguments, including the angle brackets
+4        Array square brackets and/or space")
+
+
+;; This macro is copied from "cc-defs.el" in GNU Emacs 22.1
+(defmacro moka-save-buffer-state (varlist &rest body)
+  `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
+          (inhibit-read-only t) (inhibit-point-motion-hooks t)
+          before-change-functions after-change-functions
+          deactivate-mark
+          ,@varlist)
+     (unwind-protect
+         (progn ,@body)
+       (and (not modified)
+            (buffer-modified-p)
+            (set-buffer-modified-p nil)))))
+
 (defun moka-uniqify-list (list)
   "Return a copy of LIST with all duplicates removed.
 The original list is not modified. Example:
@@ -133,6 +160,53 @@ Return nil if no regexp in LIST matches S."
             (return-from while-list index))
         (setq list (cdr list))
         (setq index (1+ index))))))
+
+(defun moka-current-method-name (&optional bound)
+  "Return the current method name"
+  (let (start-pos     ;;                 RETURN TYPE           METHOD NAME               ARGS
+        (start-regexp (concat "[ \t\n]+" moka-tags-type-regexp "\\([A-Za-z0-9_]+\\)[ \t\n]*\([^)]*\)")))
+    (save-excursion
+      (moka-save-buffer-state ()
+        ;; Make sure we are not in the middle of a method declaration
+        (c-end-of-statement)
+
+        (let (method-name return-type)
+          ;; Search backward for method declaration
+          (while (and (null start-pos) (re-search-backward start-regexp bound t))
+            (moka-message "Regexp match `%s'" (match-string 0))
+            (setq return-type (buffer-substring-no-properties (match-beginning 2) (match-end 2)))
+            (setq method-name (buffer-substring-no-properties (match-beginning 5) (match-end 5)))
+            (moka-message "Found method `%s' with return type `%s'" method-name return-type)
+            ;; Ignore invalid method names, return types, and declarations in comments and strings
+            (goto-char (match-beginning 2))
+            (unless (or (string-match "^for$" method-name)
+                        (string-match "^new$\\|^return$\\|^throw$" return-type)
+                        (c-in-literal))
+              ;; Go to the beginning of the method declaration
+              (c-end-of-statement)
+              (c-beginning-of-statement-1)
+              (setq start-pos (point))))
+          method-name)))))
+
+(defun moka-current-class-name ()
+  (file-name-nondirectory
+   (file-name-sans-extension
+    (or (buffer-file-name) (buffer-name (current-buffer))))))
+
+(defun moka-current-package-name ()
+  "Finds the likely package in `.` notation.
+
+NOTE: This is likely better off in moka-lib"
+  (let* ((dir-name (file-name-directory (expand-file-name (buffer-file-name))))
+         (dir-name-len (length dir-name))
+         (root (expand-file-name (moka-mvn-find-root)))
+         (root-len (length root)))
+    (if (and (> dir-name-len root-len)
+             (string-equal (substring dir-name 0 root-len) root))
+        (let ((rest-dir-name (substring dir-name root-len (- dir-name-len 1))))
+          (if (= (string-match "src/\\(test\\|main\\)/java/" rest-dir-name) 0)
+              (replace-regexp-in-string "/" "." (substring rest-dir-name 14))
+            nil)))))
 
 
 (provide 'moka-lib)

@@ -210,19 +210,7 @@ parse `tag-table-alist' instead of the built-in function."
 ;; Private variables:
 ;; ----------------------------------------------------------------------------
 
-
-;;                              PACKAGE                  TYPE NAME          TYPE ARGS       ARRAY OR SPACE
-(defconst moka-tags-type-regexp "\\([A-Za-z0-9_.]+\\\.\\)*\\([A-Za-z0-9_]+\\)\\(<[^>]+>\\)?\\(\\[\\]\\|[ \t\n]\\)+"
-  "Defines a regular expression that matches a Java type.
-The matched string is grouped into subexpressions as described below.
-
-subexp   description
-------   -----------
-
-1        Package name, including the last dot
-2        Type name
-3        Generic type arguments, including the angle brackets
-4        Array square brackets and/or space")
+(defconst moka-tags-type-regexp moka-type-regexp)
 
 ;; This regexp is copied from "etags.el" in GNU Emacs 22.1
 (defconst moka-tags-tag-line-regexp
@@ -282,19 +270,6 @@ This variable is used to circle completions.")
   (unless (featurep 'xemacs)
     (defsubst moka-tags-visit-tags-table-buffer (name)
       (visit-tags-table-buffer name))))
-
-;; This macro is copied from "cc-defs.el" in GNU Emacs 22.1
-(defmacro moka-tags-save-buffer-state (varlist &rest body)
-  `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
-          (inhibit-read-only t) (inhibit-point-motion-hooks t)
-          before-change-functions after-change-functions
-          deactivate-mark
-          ,@varlist)
-     (unwind-protect
-         (progn ,@body)
-       (and (not modified)
-            (buffer-modified-p)
-            (set-buffer-modified-p nil)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Main functions:
@@ -1213,7 +1188,7 @@ search is bounded by BOUND, which should be the start of the class."
   (let (start-pos     ;;                 RETURN TYPE           METHOD NAME               ARGS
         (start-regexp (concat "[ \t\n]+" moka-tags-type-regexp "\\([A-Za-z0-9_]+\\)[ \t\n]*\([^)]*\)")))
     (save-excursion
-      (moka-tags-save-buffer-state ()
+      (moka-save-buffer-state ()
 
         ;; Make sure we are not in the middle of a method declaration
         (c-end-of-statement)
