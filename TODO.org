@@ -2,50 +2,63 @@
 
 * TODO General
   - [ ] *HIGH* Proper indentation of annotated methods
-  - [ ] *MED* Import generation from tags 
+  - [X] *MED* Import generation from tags
     - I think JTags does this if tags are setup properly and fully
   - [X] Import sorting - via JTags
-    - *LOW* Can we remove unused imports easily?
+    - [X] *LOW* Can we remove unused imports easily?
   - [X] Cleanup of the moka source
     - Could still use more, but sure.
-  - [ ] Indenter (might be external. Ideally supports XML config from eclipse, and the options defined there)
+  - [ ] Indenter (might be external. Ideally supports XML config from
+    eclipse, and the options defined there)
     - could perhaps use eclipse itself.
 
 * TODO Tags
-  - [ ] *HIGH* Project "bundles" 
-    - Each pom file should have it's own set of TAGS files.
-      For instance. I have a project at ~/repos/foobar/pom.xml, and a project at ~/repos/quux/pom.xml,
-      both of which rely on JUnit and something else. We therefore get a setup like this:
+  Currently thinking about how to adopt something else
+  completely. TAGS have lots of limitations but jtags is pretty well
+  written, and much of the functionality could be kept, I think, with
+  another "tag" input source. An ideal solution involves the
+  following:
 
-      - moka-global-tag-registry:
-        (("~/repos/foobar/" . '("JUNIT-TAGS" "FOOBAR-FOLDER-TAGS"))
-         ("~/repos/quux/" . '("JUNIT-TAGS" "QUUX-FOLDER-TAGS" "MOCKITO-TAGS")))
+  - For each package, generate an lisp datastructure that has the following form:
 
-      - Then, in a buffer local variable, we store the file's project, and tag lookups go through to the
-        specific TAGS files.
-  - [ ] *HIGH* Tag file directories should be discovered, not declared.
-    - This is currently being done to populate tag-table-list, which *should* become a buffer local
-  - [ ] *MED* Tie jtags stuff into autocomplete-mode (I think it could be pretty powerful)
-  - [ ] *HIGH* Make tags from sources-jar files
+    (package-name (class filename ((method lineno (args) ...))) ...)
+
+  - We then need an inverted index from Classname to packages
+
+    (classname (package-name ...))
+
+    - This would ideally order packages by usage in a codebase, for
+      the purposes of probablistically correct guesses
+
+
 
 * TODO Testing
   - [ ] *MED* Run test at point (via mvn)
-  - [ ] *MED* Run all tests in file (via mvn)
-    - requires package / class discovery. 
-  - [ ] *HIGH* Jump to location in files referenced (should be pretty easy to)
-    - Ultimately it's just defining a regexp and adding it to a list, but how do we deal with different output?
+  - [X] *MED* Run all tests in file (via mvn)
+    - requires package / class discovery.
+  - [ ] *HIGH* Jump to location in files referenced (should be pretty
+    easy to)
+    - Ultimately it's just defining a regexp and adding it to a list,
+      but how do we deal with different output?
     - Does maven standardize this because it has a test runner?
 
 * TODO Exploratory
-  - [ ] Integrate a shell / repl of some sort to cut down on boilerplate 
-    - I don't think Clojure is *right* for this task. Need very good dynamic class loading / replacement so as to not need to restart so often.
-      - beanshell (https://github.com/nicedevs/BeanShell2) 
+  - [ ] Integrate a shell / repl of some sort to cut down on boilerplate
+    - I don't think Clojure is *right* for this task. Need very good
+      dynamic class loading / replacement so as to not need to restart
+      so often.
+      - beanshell (https://github.com/nicedevs/BeanShell2)
       - Groovy
-      - Sisc ? 
+      - Sisc ?
       - kawa ?
 
-* TODO Maven
+* Maven
   - [ ] Execute common tasks simply and easily
-    - Have to switch to directory, but otherwise, should be done -- not documented.
+    - Have to switch to directory, but otherwise, should be done --
+      not documented.
   - [ ] Discover goals
   - [ ] *INPROG* Discover classpath, relates to tag stuff
+    - Can do this, but I'm not sure it's really useful. Classpath is
+      too large to be effective for much.
+    - Should attempt to find immediate dependencies in the project POM
+      and deal with those.
