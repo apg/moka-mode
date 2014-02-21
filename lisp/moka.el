@@ -51,6 +51,7 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
 (require 'moka-tags)
 (require 'moka-mvn)
 (require 'moka-yas)
+
 (require 'moka-cleanup)
 
 (defvar moka-mode-map nil
@@ -64,6 +65,9 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
     (define-key map [(control c) ?\,] 'moka-tags-update-this-tags-file)
     (define-key map [(control c) ?\+] 'moka-cleanup-add-import)
     (define-key map [(control c) ?\=] 'moka-cleanup-organize-imports)
+    (define-key map [(control c) ?t]  'moka-mvn-test-this)
+    (define-key map [(control c) ?T]  'moka-mvn-test)
+    (define-key map [(control c) ?m]  'moka-mvn)
 
     (setq moka-mode-map map)))
 
@@ -77,7 +81,11 @@ non-nil, the submenu will be displayed when moka-tags mode is active."
         ["Update all tags files" moka-tags-update-tags-files t]
         "--"
         ["Add import" moka-cleanup-add-import t]
-        ["Organize imports" moka-cleanup-organize-imports t])
+        ["Organize imports" moka-cleanup-organize-imports t]
+        "--"
+        ["Maven" moka-mvn t]
+        ["Maven test" moka-mvn-test t]
+        ["Maven test this file" moka-mvn-test-this t])
   "Moka submenu definition.")
 
 ;; Define a menu, and put it in the `moka-mode-map'.
